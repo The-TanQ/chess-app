@@ -1,18 +1,19 @@
 const mysql = require('mysql2/promise');
 
-let pool;
+let pool; // shared pool instance
 
 async function initDatabase() {
   pool = mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'chess_app',
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
   });
 
+  // Create tables
   await pool.execute(`
     CREATE TABLE IF NOT EXISTS users (
       user_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -84,11 +85,15 @@ async function initDatabase() {
     FROM users
   `);
 
-  return db;
+  console.log("Database initialized.");
+  return pool;
 }
 
 function getDatabase() {
-  return db;
+  if (!pool) {
+    throw new Error("Database not initialized. Call initDatabase() first.");
+  }
+  return pool;
 }
 
 module.exports = { initDatabase, getDatabase };

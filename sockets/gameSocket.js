@@ -79,7 +79,7 @@ function setupWebSocketServer(server, JWT_SECRET) {
 
         // handle chat messages
         if (data.type === 'chat') {
-          handleChatMessage(ws, data, games);
+          await handleChatMessage(ws, data, games);
         }
 
         // handle moves from clients

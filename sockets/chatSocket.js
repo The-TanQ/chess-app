@@ -1,6 +1,6 @@
 const { getDatabase } = require('../config/db');
 
-function handleChatMessage(ws, data, games) {
+async function handleChatMessage(ws, data, games) {
   const { gameId, message } = data;
   const g = games.get(gameId);
   if (!g || !ws.user) {
@@ -11,7 +11,7 @@ function handleChatMessage(ws, data, games) {
   // save to database if user is registered
   if (ws.user.id) {
     const db = getDatabase();
-    db.execute('INSERT INTO chat_messages (game_id, user_id, message_text) VALUES (?, ?, ?)',
+    await db.execute('INSERT INTO chat_messages (game_id, user_id, message_text) VALUES (?, ?, ?)',
       [gameId, ws.user.id, message]);
   }
   

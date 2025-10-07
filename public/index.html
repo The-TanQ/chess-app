@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chess App</title>
+    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="auth-panel">
+        <input id="username" placeholder="Username">
+        <input id="password" type="password" placeholder="Password">
+        <button id="login">Login</button>
+        <button id="register">Register</button>
+    </div>
+
+    <div id="game-panel" style="display:none;">
+        <div id="game-info">
+            <div id="player-info"></div>
+            <div id="game-status"></div>
+        </div>
+        
+        <div id="main-game">
+            <div id="board-container">
+                <div id="board"></div>
+            </div>
+            
+            <div id="sidebar">
+                <div id="chat-panel">
+                    <h3>Chat</h3>
+                    <div id="chat-messages"></div>
+                    <div id="chat-input-container">
+                        <input id="chat-input" placeholder="Type message...">
+                        <button id="send-chat">Send</button>
+                    </div>
+                </div>
+                
+                <div id="game-controls">
+                    <button id="find-match">Find Match</button>
+                    <button id="resign" style="display:none;">Resign</button>
+                </div>
+                
+                <div id="leaderboard">
+                    <h3>Leaderboard</h3>
+                    <div id="leaderboard-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="notifications"></div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/chess.js@1.0.0/chess.min.js"></script>
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
