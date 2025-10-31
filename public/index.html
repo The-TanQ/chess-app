@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Chess App</title>
-    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="./lib/chessboard-1.0.0.css" />
 </head>
 <body>
     <div id="auth-panel">
@@ -18,12 +19,12 @@
             <div id="player-info"></div>
             <div id="game-status"></div>
         </div>
-        
+
         <div id="main-game">
             <div id="board-container">
-                <div id="board"></div>
+                <div id="board" style="width:400px; "></div>
             </div>
-            
+
             <div id="sidebar">
                 <div id="chat-panel">
                     <h3>Chat</h3>
@@ -33,12 +34,12 @@
                         <button id="send-chat">Send</button>
                     </div>
                 </div>
-                
+
                 <div id="game-controls">
                     <button id="find-match">Find Match</button>
                     <button id="resign" style="display:none;">Resign</button>
                 </div>
-                
+
                 <div id="leaderboard">
                     <h3>Leaderboard</h3>
                     <div id="leaderboard-list"></div>
@@ -46,12 +47,16 @@
             </div>
         </div>
     </div>
-    
+
     <div id="notifications"></div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://unpkg.com/chess.js@1.0.0/chess.min.js"></script>
-    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
-    <script src="app.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" 
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" 
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js" 
+            integrity="sha512-xRllwz2gdZciIB+AkEbeq+gVhX8VB8XsfqeFbUh+SzHlN96dEduwtTuVuc2u9EROlmW9+yhRlxjif66ORpsgVA==" 
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="./lib/chessboard-1.0.0.js"></script>
+    <script src="./app.js" type="module"></script>
 </body>
 </html>

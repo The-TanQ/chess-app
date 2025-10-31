@@ -10,9 +10,13 @@ async function handleChatMessage(ws, data, games) {
   
   // save to database if user is registered
   if (ws.user.id) {
-    const db = getDatabase();
-    await db.execute('INSERT INTO chat_messages (game_id, user_id, message_text) VALUES (?, ?, ?)',
-      [gameId, ws.user.id, message]);
+    try {
+      const db = getDatabase();
+      await db.execute('INSERT INTO games (game_id, white_player_id, black_player_id, result) VALUES (?, ?, ?, ?)',
+        [gameId, white.user.id, black.user.id, 'ongoing']);
+    } catch (dbError) {
+      console.error('Failed to create game in database:', dbError);
+    }
   }
   
   // broadcast to both players

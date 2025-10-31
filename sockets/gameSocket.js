@@ -1,11 +1,10 @@
 const WebSocket = require('ws');
 const jwt = require('jsonwebtoken');
-const { Chess } = require('chess.js');
+const Chess = require('chess.js').Chess;
 const { getDatabase } = require('../config/db');
 const { eloUpdate } = require('../utils/elo');
 const { handleChatMessage } = require('./chatSocket');
 
-// Basic in-memory matchmaking & games
 const waiting = []; // queue of sockets waiting for match
 const games = new Map(); // gameId -> { chess, whiteSocket, blackSocket, whiteUser, blackUser, moves }
 
@@ -52,7 +51,7 @@ function setupWebSocketServer(server, JWT_SECRET) {
             const p1 = waiting.shift();
             const p2 = waiting.shift();
             const chess = new Chess();
-            const gameId = Date.now() + '_' + Math.floor(Math.random() * 1000);
+            const gameId = Date.now() + Math.floor(Math.random() * 1000);
             // assign white randomly
             const white = Math.random() < 0.5 ? p1 : p2;
             const black = white === p1 ? p2 : p1;
@@ -99,62 +98,93 @@ function setupWebSocketServer(server, JWT_SECRET) {
           }
 
           const moveObj = { from, to };
-          if (promotion) moveObj.promotion = promotion;
+          if (promotion && ((from.charAt(1) === '7' && to.charAt(1) === '8') || (from.charAt(1) === '2' && to.charAt(1) === '1'))) {
+            moveObj.promotion = promotion;
+          }
           const move = chess.move(moveObj);
           if (!move) {
-            ws.send(JSON.stringify({ type: 'invalid_move' }));
+            console.log('Invalid move attempted:', moveObj);
+            ws.send(JSON.stringify({ type: 'error', message: 'invalid move' }));
             return;
           }
           g.moves.push(move.san);
 
-          // broadcast move to both
-          const payload = { type: 'move_made', move: move.san, from, to, fen: chess.fen(), pgn: chess.pgn() };
-          g.whiteSocket.send(JSON.stringify(payload));
-          g.blackSocket.send(JSON.stringify(payload));
+          // broadcast move to both players
+          const payload = { 
+            type: 'move_made', 
+            move: move.san, 
+            from, 
+            to, 
+            fen: chess.fen(), 
+            pgn: chess.pgn(),
+            turn: chess.turn()
+          };
+          
+          if (g.whiteSocket && g.whiteSocket.readyState === WebSocket.OPEN) {
+            g.whiteSocket.send(JSON.stringify(payload));
+          }
+          if (g.blackSocket && g.blackSocket.readyState === WebSocket.OPEN) {
+            g.blackSocket.send(JSON.stringify(payload));
+          }
 
           // check for game over
-          if (chess.game_over()) {
+          if (chess.isGameOver()) {
             let result;
-            if (chess.in_checkmate()) {
-              // side that just moved wins
-              const lastMovedColor = chess.turn() === 'w' ? 'b' : 'w';
-              result = lastMovedColor === 'w' ? '1-0' : '0-1';
-            } else {
+            if (chess.isCheckmate()) {
+              // the side that just moved wins (since it's now the other side's turn but they're in checkmate)
+              const winner = chess.turn() === 'w' ? 'b' : 'w';
+              result = winner === 'w' ? '1-0' : '0-1';
+            } else if (chess.isStalemate() || chess.isThreefoldRepetition() || chess.isInsufficientMaterial()) {
               result = '1/2-1/2';
+            } else {
+              result = '1/2-1/2'; // draw by other means
             }
 
             // persist game to DB and update ELO if both players are registered
             const whiteId = g.whiteUser.id;
             const blackId = g.blackUser.id;
-            const db = getDatabase();
-            await db.execute('INSERT INTO games (white_player_id, black_player_id, result) VALUES (?, ?, ?)',
-              [whiteId, blackId, result]);
+            
+            try {
+              const db = getDatabase();
+              await db.execute('INSERT INTO games (white_player_id, black_player_id, result) VALUES (?, ?, ?)',
+                [whiteId, blackId, result]);
 
-            // update ratings if both logged-in users
-            if (whiteId && blackId) {
-              const [wRows] = await db.execute('SELECT elo_rating FROM users WHERE user_id = ?', [whiteId]);
-              const [bRows] = await db.execute('SELECT elo_rating FROM users WHERE user_id = ?', [blackId]);
-              const wRow = wRows[0];
-              const bRow = bRows[0];
-              let Rw = wRow ? wRow.elo_rating : 1200;
-              let Rb = bRow ? bRow.elo_rating : 1200;
-              let scoreW = 0.5, scoreB = 0.5;
-              if (result === '1-0') { scoreW = 1; scoreB = 0; }
-              else if (result === '0-1') { scoreW = 0; scoreB = 1; }
+              // update ratings if both logged-in users
+              if (whiteId && blackId) {
+                const [wRows] = await db.execute('SELECT elo_rating FROM users WHERE user_id = ?', [whiteId]);
+                const [bRows] = await db.execute('SELECT elo_rating FROM users WHERE user_id = ?', [blackId]);
+                const wRow = wRows[0];
+                const bRow = bRows[0];
+                let Rw = wRow ? wRow.elo_rating : 1200;
+                let Rb = bRow ? bRow.elo_rating : 1200;
+                let scoreW = 0.5, scoreB = 0.5;
+                if (result === '1-0') { scoreW = 1; scoreB = 0; }
+                else if (result === '0-1') { scoreW = 0; scoreB = 1; }
 
-              const newRw = eloUpdate(Rw, Rb, scoreW);
-              const newRb = eloUpdate(Rb, Rw, scoreB);
+                const newRw = eloUpdate(Rw, Rb, scoreW);
+                const newRb = eloUpdate(Rb, Rw, scoreB);
 
-              await db.execute('UPDATE users SET elo_rating = ? WHERE user_id = ?', [newRw, whiteId]);
-              await db.execute('UPDATE users SET elo_rating = ? WHERE user_id = ?', [newRb, blackId]);
+                await db.execute('UPDATE users SET elo_rating = ? WHERE user_id = ?', [newRw, whiteId]);
+                await db.execute('UPDATE users SET elo_rating = ? WHERE user_id = ?', [newRb, blackId]);
 
-              // notify players about updated ratings
-              g.whiteSocket.send(JSON.stringify({ type: 'game_over', result, your_new_rating: newRw }));
-              g.blackSocket.send(JSON.stringify({ type: 'game_over', result, your_new_rating: newRb }));
-            } else {
-              // guest or partial
-              g.whiteSocket.send(JSON.stringify({ type: 'game_over', result }));
-              g.blackSocket.send(JSON.stringify({ type: 'game_over', result }));
+                // notify players about updated ratings
+                if (g.whiteSocket && g.whiteSocket.readyState === WebSocket.OPEN) {
+                  g.whiteSocket.send(JSON.stringify({ type: 'game_over', result, your_new_rating: newRw }));
+                }
+                if (g.blackSocket && g.blackSocket.readyState === WebSocket.OPEN) {
+                  g.blackSocket.send(JSON.stringify({ type: 'game_over', result, your_new_rating: newRb }));
+                }
+              } else {
+                // guest or partial
+                if (g.whiteSocket && g.whiteSocket.readyState === WebSocket.OPEN) {
+                  g.whiteSocket.send(JSON.stringify({ type: 'game_over', result }));
+                }
+                if (g.blackSocket && g.blackSocket.readyState === WebSocket.OPEN) {
+                  g.blackSocket.send(JSON.stringify({ type: 'game_over', result }));
+                }
+              }
+            } catch (dbError) {
+              console.error('Database error during game completion:', dbError);
             }
 
             // cleanup

@@ -1,28 +1,208 @@
 body {
   font-family: Arial, sans-serif;
   background: #f4f4f4;
+  margin: 0;
+  padding: 20px;
+}
+
+#auth-panel {
+  max-width: 400px;
+  margin: 100px auto;
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   text-align: center;
 }
 
-#game-container {
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
-  gap: 30px;
+#auth-panel input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
 }
 
-#chat-container {
-  width: 250px;
-  background: white;
-  border: 1px solid #ccc;
-  border-radius: 8px;
+#auth-panel button {
+  width: 48%;
   padding: 10px;
+  margin: 5px 1%;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#auth-panel button:hover {
+  background: #0056b3;
+}
+
+#game-panel {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+#game-info {
+  background: white;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+#main-game {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+
+#board-container {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  width: 520px;
+  margin: auto;
+}
+
+#board {
+  width: 480px;
+  height: 480px;
+  margin: 0 auto;
+}
+
+
+.highlight-selected {
+  background-color: rgba(255, 255, 0, 0.4) !important; /* selected piece */
+}
+
+.highlight-valid {
+  background-color: rgba(0, 255, 0, 0.4) !important; /* valid move squares */
+}
+
+#sidebar {
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+#chat-panel {
+  background: white;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 #chat-messages {
-  height: 300px;
-  overflow-y: scroll;
+  height: 200px;
+  overflow-y: auto;
   border: 1px solid #ddd;
-  padding: 5px;
-  margin-bottom: 10px;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 4px;
+  background: #f9f9f9;
+}
+
+#chat-input-container {
+  display: flex;
+  gap: 5px;
+}
+
+#chat-input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+#chat-input:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+}
+
+#send-chat {
+  padding: 8px 15px;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#send-chat:hover {
+  background: #218838;
+}
+
+#game-controls {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+#game-controls button {
+  width: 100%;
+  padding: 10px;
+  margin: 5px 0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+#find-match {
+  background: #007bff;
+  color: white;
+}
+
+#find-match:hover {
+  background: #0056b3;
+}
+
+#find-match:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+#resign {
+  background: #dc3545;
+  color: white;
+}
+
+#resign:hover {
+  background: #c82333;
+}
+
+#leaderboard {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+#leaderboard h3 {
+  margin-top: 0;
+}
+
+#notifications {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+@media (max-width: 768px) {
+  #main-game {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  #sidebar {
+    width: 100%;
+    max-width: 400px;
+  }
 }

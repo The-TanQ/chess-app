@@ -26,7 +26,7 @@ const { setupWebSocketServer } = require('./sockets/gameSocket');
       console.log("Server running on http://localhost:3000");
     });
 
-    // setupWebSocketServer(server, JWT_SECRET);
+    setupWebSocketServer(server, JWT_SECRET);
 
   } catch (err) {
     console.error("DB init failed:", err);
