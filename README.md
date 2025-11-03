@@ -51,17 +51,6 @@ A real-time multiplayer chess game built with Node.js, WebSockets, and Chess.js.
 
 ## Environment Variables
 
-Make sure your `.env` file contains:
-```
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=your_password
-DB_NAME=chess
-JWT_SECRET=your_secret_key
-PORT=3000
-```
-
 ## Game Rules
 
 - Standard chess rules apply
