@@ -73,6 +73,45 @@ function setupWebSocketServer(server, JWT_SECRET) {
             const payload = { type: 'match_found', gameId, white: white.user.username, black: black.user.username, color: 'w' };
             white.send(JSON.stringify({ ...payload, color: 'white' }));
             black.send(JSON.stringify({ ...payload, color: 'black' }));
+          } else {
+            // Add timeout for bot match if no human opponent found
+            setTimeout(() => {
+              const playerIndex = waiting.indexOf(ws);
+              if (playerIndex !== -1) {
+                // Remove player from waiting queue
+                waiting.splice(playerIndex, 1);
+                
+                // Create bot opponent
+                const botUser = { id: null, username: 'Bot_' + Math.floor(Math.random() * 1000) };
+                const chess = new Chess();
+                const gameId = Date.now() + Math.floor(Math.random() * 1000);
+                
+                // Player vs Bot (player is always white for simplicity)
+                games.set(gameId, {
+                  chess,
+                  whiteSocket: ws,
+                  blackSocket: null, // Bot has no socket
+                  whiteUser: ws.user,
+                  blackUser: botUser,
+                  moves: [],
+                  isBot: true
+                });
+                
+                ws.gameId = gameId;
+                ws.color = 'w';
+                
+                ws.send(JSON.stringify({ 
+                  type: 'match_found', 
+                  gameId, 
+                  white: ws.user.username, 
+                  black: botUser.username, 
+                  color: 'white' 
+                }));
+                
+                // Start bot move timer
+                setTimeout(() => makeBotMove(gameId), 1000);
+              }
+            }, 10000); // 10 second timeout
           }
         }
 
@@ -125,6 +164,11 @@ function setupWebSocketServer(server, JWT_SECRET) {
           }
           if (g.blackSocket && g.blackSocket.readyState === WebSocket.OPEN) {
             g.blackSocket.send(JSON.stringify(payload));
+          }
+
+          // Trigger bot move if playing against bot
+          if (g.isBot && g.chess.turn() === 'b' && !g.chess.isGameOver()) {
+            setTimeout(() => makeBotMove(gameId), 500);
           }
 
           // check for game over
@@ -230,6 +274,41 @@ function setupWebSocketServer(server, JWT_SECRET) {
   });
 
   return wss;
+}
+
+function makeBotMove(gameId) {
+  const g = games.get(gameId);
+  if (!g || !g.isBot || g.chess.turn() !== 'b') return;
+  
+  const moves = g.chess.moves();
+  if (moves.length === 0) return;
+  
+  // Random move selection
+  const randomMove = moves[Math.floor(Math.random() * moves.length)];
+  const move = g.chess.move(randomMove);
+  
+  if (move && g.whiteSocket) {
+    g.moves.push(move.san);
+    g.whiteSocket.send(JSON.stringify({
+      type: 'move_made',
+      move: move.san,
+      from: move.from,
+      to: move.to,
+      fen: g.chess.fen(),
+      pgn: g.chess.pgn(),
+      turn: g.chess.turn()
+    }));
+    
+    // Check for game over
+    if (g.chess.isGameOver()) {
+      let result = '1/2-1/2';
+      if (g.chess.isCheckmate()) {
+        result = g.chess.turn() === 'w' ? '0-1' : '1-0';
+      }
+      g.whiteSocket.send(JSON.stringify({ type: 'game_over', result }));
+      games.delete(gameId);
+    }
+  }
 }
 
 module.exports = { setupWebSocketServer };
