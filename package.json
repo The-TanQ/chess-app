@@ -5,8 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "build": "node build.js"
-
+    "build": "echo \"No build step configured\" && exit 1"
   },
   "keywords": [],
   "author": "",
