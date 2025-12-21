@@ -13,6 +13,7 @@ A real-time multiplayer chess game built with Node.js, WebSockets, and Chess.js.
 ## Setup Instructions
 
 1. **Install Dependencies**
+
    ```bash
    npm install
    ```
@@ -23,6 +24,7 @@ A real-time multiplayer chess game built with Node.js, WebSockets, and Chess.js.
    - The application will automatically create the required tables
 
 3. **Start the Server**
+
    ```bash
    npm start
    ```
@@ -48,8 +50,6 @@ A real-time multiplayer chess game built with Node.js, WebSockets, and Chess.js.
 - **Chess Logic**: Chess.js library
 - **Board UI**: Chessboard.js
 - **Authentication**: JWT tokens
-
-## Environment Variables
 
 ## Game Rules
 
